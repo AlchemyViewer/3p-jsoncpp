@@ -161,6 +161,10 @@ if(BUILD_STATIC_LIBS)
         set_target_properties(${STATIC_LIB} PROPERTIES INSTALL_RPATH "@loader_path/.")
     endif()
 
+    if(MSVC)
+        target_compile_options(${STATIC_LIB} PRIVATE /Z7)
+    endif()
+
     target_compile_features(${STATIC_LIB} PUBLIC ${REQUIRED_FEATURES})
 
     target_include_directories(${STATIC_LIB} PUBLIC

@@ -4,7 +4,7 @@
     <key>package_description</key>
     <map>
       <key>canonical_repo</key>
-      <string>https://bitbucket.org/lindenlab/3p-jsoncpp</string>
+      <string>https://git.alchemyviewer.org/alchemy/thirdparty/3p-jsoncpp</string>
       <key>copyright</key>
       <string>Copyright (c) 2007-2010 Baptiste Lepilleur</string>
       <key>description</key>
@@ -107,6 +107,7 @@
           </map>
           <key>manifest</key>
           <array>
+            <string>lib/debug/*.lib</string>
             <string>lib/release/*.lib</string>
           </array>
           <key>name</key>

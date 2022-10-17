@@ -11,7 +11,7 @@ set -u
 
 JSONCPP_SOURCE_DIR="jsoncpp-src"
 # version number is conveniently found in a file with no other content
-JSONCPP_VERSION="$(<$JSONCPP_SOURCE_DIR/version)"
+JSONCPP_VERSION="1.9.5" #"$(<$JSONCPP_SOURCE_DIR/version)"
 
 if [ -z "$AUTOBUILD" ] ; then 
     exit 1
@@ -38,17 +38,50 @@ pushd "$JSONCPP_SOURCE_DIR"
         windows*)
             load_vsvars
 
-            build_sln "./makefiles/vs$AUTOBUILD_VSVER/jsoncpp.sln" "Release|$AUTOBUILD_WIN_VSPLATFORM"
+            # Debug Build
+            mkdir -p "build_debug"
+            pushd "build_debug"
+                cmake .. -G "$AUTOBUILD_WIN_CMAKE_GEN" -A "$AUTOBUILD_WIN_VSPLATFORM" \
+                    -DCMAKE_INSTALL_PREFIX="$(cygpath -m $stage)/debug" \
+                    -DBUILD_SHARED_LIBS=OFF \
+                    -DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF
 
-            mkdir --parents "$stage/lib/release"
-            mkdir --parents "$stage/include/json"
+                cmake --build . --config Debug
+                cmake --install . --config Debug
 
-            if [ "$AUTOBUILD_ADDRSIZE" = 32 ]
-            then cp "./build/vs$AUTOBUILD_VSVER/release/lib_json/json_libmd.lib" "$stage/lib/release"
-            else cp "./makefiles/vs$AUTOBUILD_VSVER/x64/release/json_libmd.lib" "$stage/lib/release"
-            fi
+                # conditionally run unit tests
+                if [ "${DISABLE_UNIT_TESTS:-0}" = "0" ]; then
+                    ctest -C Debug
+                fi
+            popd
 
-            cp ../"${JSONCPP_SOURCE_DIR}"/include/json/*.h "$stage/include/json"
+            # Release Build
+            mkdir -p "build_release"
+            pushd "build_release"
+                cmake .. -G "$AUTOBUILD_WIN_CMAKE_GEN" -A "$AUTOBUILD_WIN_VSPLATFORM" \
+                    -DCMAKE_INSTALL_PREFIX="$(cygpath -m $stage)/release" \
+                    -DBUILD_SHARED_LIBS=OFF \
+                    -DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF
+
+                cmake --build . --config Release
+                cmake --install . --config Release
+
+                # conditionally run unit tests
+                if [ "${DISABLE_UNIT_TESTS:-0}" = "0" ]; then
+                    ctest -C Release
+                fi
+            popd
+
+            mkdir -p "$stage/lib/debug"
+            mkdir -p "$stage/lib/release"
+            mkdir -p "$stage/include/json"
+
+            # Copy libraries
+            cp -a ${stage}/debug/lib/*.lib ${stage}/lib/debug/
+            cp -a ${stage}/release/lib/*.lib ${stage}/lib/release/
+
+            # copy headers
+            cp -a $stage/release/include/json/* $stage/include/json/
         ;;
         darwin*)
             export CCFLAGS="-arch $AUTOBUILD_CONFIGURE_ARCH $LL_BUILD_RELEASE"
