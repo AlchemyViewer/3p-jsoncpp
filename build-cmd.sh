@@ -30,8 +30,7 @@ source_environment_tempfile="$stage/source_environment.sh"
 "$autobuild" source_environment > "$source_environment_tempfile"
 . "$source_environment_tempfile"
 
-build=${AUTOBUILD_BUILD_ID:=0}
-echo "${JSONCPP_VERSION}.${build}" > "${stage}/VERSION.txt"
+echo "${JSONCPP_VERSION}" > "${stage}/VERSION.txt"
 
 mkdir -p "$stage/lib/debug"
 mkdir -p "$stage/lib/release"
